@@ -2,6 +2,39 @@ import yfinance as yf
 import pandas as pd
 from datetime import datetime, timedelta
 import streamlit as st
+import hashlib
+
+# Utility function to hash passwords
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+# Format: username: hashed_password
+USER_CREDENTIALS = {
+    "admin": hash_password("admin123"),
+    "user1": hash_password("secret1"),
+}
+
+# Check login status
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+def login():
+    st.title("🔐 Secure Access")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+        if username in USER_CREDENTIALS and USER_CREDENTIALS[username] == hash_password(password):
+            st.session_state.authenticated = True
+            st.session_state.username = username
+            st.rerun()
+        else:
+            st.error("❌ Invalid username or password")
+
+# Require login before running the app
+if not st.session_state.authenticated:
+    login()
+    st.stop()
 
 # Function for SMA respect analysis (from code 1)
 def get_sma(stock_data, period):
